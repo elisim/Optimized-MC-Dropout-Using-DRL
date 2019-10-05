@@ -1,2 +1,3 @@
-jupyterlab
 gym
+jupyterlab
+nb_conda_kernels
