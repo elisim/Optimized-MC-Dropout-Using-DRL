@@ -1,3 +1,4 @@
 gym
 jupyterlab
 nb_conda_kernels
+ipdb
