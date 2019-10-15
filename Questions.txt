@@ -1,0 +1,2 @@
+1. is the real class var should be the lowest? the answer should be yes. 
+2. Amit: Work with pycharm and linux & windows 
