@@ -8,7 +8,7 @@ def mc_dropout(net, X_train, batch_size=1000, dropout=0.5, T=100):
 
     Forward passes T times, then take the variance from all the predictions for each class.
     the mc_dropout score for an example will be the mean of the variances for all the classes.
-    y_mc_dropout is the mean of all the runs.
+    y_mc_dropout is the mean of all runs.
     """
     net.set_mc_dropout_rate(dropout)
     model = net.model
