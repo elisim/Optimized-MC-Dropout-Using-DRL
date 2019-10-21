@@ -2,8 +2,3 @@
 2. Amit: Work with pycharm and linux & windows
 3. Gilad: in 'step' function, I return 'done = True' because 1 episode is go over all the data (1 epoch)
 
-
-Next:
-
-Implement 'compute_error'. 
-Ask Gilad about episode and talk to him about meeting with Lior
