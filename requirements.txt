@@ -1,6 +1,9 @@
 gym
 jupyterlab
-nb_conda_kernels
 ipdb
 tqdm
 numpy
+keras
+tensorflow
+stable_baselines
+#nb_conda_kernels
