@@ -4,8 +4,6 @@ from gym.utils import seeding
 from .mc_dropout_utils import mc_dropout
 import numpy as np
 
-MAX_MC_DROPOUT_ITERATIONS = 1000
-BATCH_SIZE = 1000
 
 class EliEnv(gym.Env):
     """
@@ -13,7 +11,7 @@ class EliEnv(gym.Env):
     """
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, net, confidence_rate, X_train, y_train, mc_dropout_rate=0.5):
+    def __init__(self, net, confidence_rate, X_train, y_train, mc_dropout_rate=0.5, max_mc_dropout_iterations=1000, basic_option=False):
         """
         :param net: keras network with 'set_mc_dropout_rate' function
         :param confidence_rate: confidence rate (uncertainty)
@@ -28,47 +26,52 @@ class EliEnv(gym.Env):
         self.data_shape = y_train.shape
         self.mc_dropout_rate = mc_dropout_rate
         ###TODO actions: agent can run 2 till mc_dropout_iterations iters.
-        self.action_space = spaces.Discrete(MAX_MC_DROPOUT_ITERATIONS-1)
-        ###TODO obs: numbers, probs. run T mc_iters, get accuracy of that ran for your batch.
+        ###Calculation: want: 2 till max. with Discrete(max): 0-max-1. So Discrete(max-1)+2!
+        self.action_space = spaces.Discrete(max_mc_dropout_iterations-1)
+        ###TODO obs: numbers, probs. run T mc_iters, get accuracy of that ran for your data.
         self.observation_space = spaces.Box(low=0, high=1, shape=self.data_shape)
         ###TODO minus num_iters for wrong, and 0 for right.
-        self.reward_range = (-MAX_MC_DROPOUT_ITERATIONS, +MAX_MC_DROPOUT_ITERATIONS)
-        
-        
+        self.reward_range = (0, 1)
         self.num_episodes = 0
         self.curr_observation = np.zeros(self.data_shape)
-        self.curr_mc_dropout_iterations = 2
+        self.curr_mc_iters = 2
+        self.basic_option = basic_option
 
     def step(self, action):
         """
         :param action: number of mc_dropout_iterations
         :return: agent's observation of the current environment
         """
-        #### needed: mc_dropout_iterations, net, batch_size, true_label
-        # run mc_dropout on the network and collect predictions on your batch. output should be: batch x num_classes (use evaluate mc_dropout).
+        # run mc_dropout on the network and collect predictions on your batch.
+        # output should be: batch x num_classes
         # get mean of runs and compare it to true value
         # you got an error. the reward will be:
         #               (correct/batch) * mc_dropout_iters
-        ### One episode = one epoch (one pass over all data)
+
         print("in step")
-        self.curr_mc_dropout_iterations = action+2
-        y_mc_dropout, err_mc_dropout = self._take_action(action+2)
-        reward = (1-err_mc_dropout) * self.data_shape[0] # TODO reward: think about it. something with the error.
-        done = True
-        info = {}
+
+        # err is float representing the part of the mistake.
+        self.curr_mc_iters = action+2
+        y_mc_dropout, err, mc_uncertainty = self._take_action(self.curr_mc_iters)
+        right_reward = 100
+        if self.basic_option:
+            reward = (1-err)*right_reward - self.curr_mc_iters
+        else:
+            reward = (1-err)*right_reward - (1-err)*self.curr_mc_iters
+
+        done = True  # One episode = one epoch (one pass over all data)
         self.curr_observation = y_mc_dropout
         self.num_episodes += 1
+        info = {'err': err, 'num_episodes': self.num_episodes}
         return y_mc_dropout, reward, done, info
 
     def reset(self):
         print("in reset")
         return self.curr_observation
-        # return an initial observation of the env. But what obs I need to return after episode end?
-        # ??????
 
     def render(self, mode='human', close=False):
         print(f"num_episodes = {self.num_episodes}")
-        print(f"mc_dropout_iterations = {self.curr_mc_dropout_iterations}")
+        print(f"mc_dropout_iterations = {self.curr_mc_iters}")
 
     def _take_action(self, action):
         """
@@ -76,13 +79,14 @@ class EliEnv(gym.Env):
         :return: y_mc_dropout, error
         """
         print("in take action")
-        print(f"action={action}")
-        y_mc_dropout, mc_uncertainty = mc_dropout(self.net, self.X_train,
-                                                  BATCH_SIZE,
-                                                  self.mc_dropout_rate,
-                                                  action)
+        print(f"action = {action}")
+        y_mc_dropout, mc_uncertainty = mc_dropout(net=self.net,
+                                                  X_train=self.X_train,
+                                                  dropout=self.mc_dropout_rate,
+                                                  T=action)
         err = self._compute_error(self.y_train, y_mc_dropout)
-        return y_mc_dropout, err
+        # TODO: do something with mc_uncertainty
+        return y_mc_dropout, err, mc_uncertainty
 
     def _compute_error(self, y_true, y_pred):
         # count the number of wrong classifications (label is 1 and i said 2 after mc)
@@ -94,3 +98,4 @@ class EliEnv(gym.Env):
     # TODO: set fixed seed
     # def seed(self, seed=None):
     #     pass
+

@@ -14,7 +14,7 @@ def mc_dropout(net, X_train, batch_size=1000, dropout=0.5, T=100):
     model = net.model
     repetitions = []
     # Todo: parallelize
-    for _ in tqdm(range(T)):
+    for _ in range(T):
         pred = model.predict(X_train, batch_size)
         repetitions.append(pred)
 
