@@ -4,6 +4,8 @@ from gym.utils import seeding
 from .mc_dropout_utils import mc_dropout
 import numpy as np
 
+right_reward = 1000
+
 
 class EliEnv(gym.Env):
     """
@@ -11,14 +13,17 @@ class EliEnv(gym.Env):
     """
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, net, confidence_rate, X_train, y_train, mc_dropout_rate=0.5, max_mc_dropout_iterations=1000, basic_option=False):
+    def __init__(self, net, confidence_rate, X_train, y_train,
+                 mc_dropout_rate=0.5,
+                 max_mc_dropout_iterations=1000,
+                 basic_option=False):
         """
         :param net: keras network with 'set_mc_dropout_rate' function
         :param confidence_rate: confidence rate (uncertainty)
         :param mc_dropout_iterations: number of forward iterations used to estimate the uncertainty
         :param mc_dropout_rate: dropout rate
         """
-        print("in init")
+        print("in inittt")
         self.net = net
         self.confidence_rate = confidence_rate
         self.X_train = X_train
@@ -31,7 +36,7 @@ class EliEnv(gym.Env):
         ###TODO obs: numbers, probs. run T mc_iters, get accuracy of that ran for your data.
         self.observation_space = spaces.Box(low=0, high=1, shape=self.data_shape)
         ###TODO minus num_iters for wrong, and 0 for right.
-        self.reward_range = (0, 1)
+        self.reward_range = (-max_mc_dropout_iterations, +max_mc_dropout_iterations)
         self.num_episodes = 0
         self.curr_observation = np.zeros(self.data_shape)
         self.curr_mc_iters = 2
@@ -48,17 +53,17 @@ class EliEnv(gym.Env):
         # you got an error. the reward will be:
         #               (correct/batch) * mc_dropout_iters
 
-        print("in step")
+#         print("in step")
 
         # err is float representing the part of the mistake.
         self.curr_mc_iters = action+2
         y_mc_dropout, err, mc_uncertainty = self._take_action(self.curr_mc_iters)
-        right_reward = 100
         if self.basic_option:
             reward = (1-err)*right_reward - self.curr_mc_iters
         else:
-            reward = (1-err)*right_reward - (1-err)*self.curr_mc_iters
-
+            reward = (1-err)*right_reward - err*self.curr_mc_iters
+        
+        print(f"action = {self.curr_mc_iters}, err = {err}, reward = {reward}")
         done = True  # One episode = one epoch (one pass over all data)
         self.curr_observation = y_mc_dropout
         self.num_episodes += 1
@@ -66,7 +71,7 @@ class EliEnv(gym.Env):
         return y_mc_dropout, reward, done, info
 
     def reset(self):
-        print("in reset")
+#         print("in reset")
         return self.curr_observation
 
     def render(self, mode='human', close=False):
@@ -78,8 +83,7 @@ class EliEnv(gym.Env):
         :param action: number (mc_dropout_iterations)
         :return: y_mc_dropout, error
         """
-        print("in take action")
-        print(f"action = {action}")
+#         print("in take action")
         y_mc_dropout, mc_uncertainty = mc_dropout(net=self.net,
                                                   X_train=self.X_train,
                                                   dropout=self.mc_dropout_rate,
