@@ -4,7 +4,6 @@ from gym.utils import seeding
 from .mc_dropout_utils import mc_dropout
 import numpy as np
 
-right_reward = 1000
 
 
 class EliEnv(gym.Env):
@@ -16,7 +15,8 @@ class EliEnv(gym.Env):
     def __init__(self, net, confidence_rate, X_train, y_train,
                  mc_dropout_rate=0.5,
                  max_mc_dropout_iterations=1000,
-                 basic_option=False):
+                 basic_option=False,
+                 right_reward=1000):
         """
         :param net: keras network with 'set_mc_dropout_rate' function
         :param confidence_rate: confidence rate (uncertainty)
@@ -41,6 +41,7 @@ class EliEnv(gym.Env):
         self.curr_observation = np.zeros(self.data_shape)
         self.curr_mc_iters = 2
         self.basic_option = basic_option
+        self.right_reward = right_reward
 
     def step(self, action):
         """
@@ -59,9 +60,9 @@ class EliEnv(gym.Env):
         self.curr_mc_iters = action+2
         y_mc_dropout, err, mc_uncertainty = self._take_action(self.curr_mc_iters)
         if self.basic_option:
-            reward = (1-err)*right_reward - self.curr_mc_iters
+            reward = (1-err)*self.right_reward - self.curr_mc_iters
         else:
-            reward = (1-err)*right_reward - err*self.curr_mc_iters
+            reward = (1-err)*self.right_reward - err*self.curr_mc_iters
         
         print(f"action = {self.curr_mc_iters}, err = {err}, reward = {reward}")
         done = True  # One episode = one epoch (one pass over all data)
