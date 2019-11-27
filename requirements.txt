@@ -4,6 +4,6 @@ ipdb
 tqdm
 numpy
 keras
-tensorflow
+tensorflow==1.15.0
 stable_baselines
 #nb_conda_kernels
