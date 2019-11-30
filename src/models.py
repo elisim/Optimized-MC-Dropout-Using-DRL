@@ -65,5 +65,6 @@ class LeNet:
     def save_model(self, name):
         self.model.save_weights(f'{name}.h5')
     
-    def load_model(self):
-        pass
+    def load_model(self, path):
+        self.model.load_weights(path)
+
