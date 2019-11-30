@@ -53,6 +53,8 @@ def main():
     train(lenet, X_train, y_train, episodes=500, lr=0.00025, right_reward=1)
     toc = time.time()
     print(timedelta(seconds=toc-tic))
+    with open("time.txt", "w") as text_file:
+    	text_file.write(str(timedelta(seconds=toc-tic)))
     
     
 if __name__ == '__main__':
