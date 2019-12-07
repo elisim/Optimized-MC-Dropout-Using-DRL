@@ -2,6 +2,9 @@ import warnings
 warnings.filterwarnings("ignore")
 import tensorflow as tf
 tf.get_logger().setLevel(tf.logging.ERROR)
+import numpy as np
+np.random.seed(42)
+
 
 from src.models import LeNet
 from src.data_utils import get_mnist
@@ -12,6 +15,7 @@ from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
 import time
 from datetime import timedelta
+
 
 
 def train(net, X_train, y_train, episodes=500, lr=0.00025, right_reward=1):
