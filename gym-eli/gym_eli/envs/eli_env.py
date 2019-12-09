@@ -15,7 +15,7 @@ class EliEnv(gym.Env):
     def __init__(self, net, confidence_rate, X_train, y_train,
                  mc_dropout_rate=0.5,
                  max_mc_dropout_iterations=1000,
-                 basic_option=False,
+                 basic_option=True,
                  right_reward=1000):
         """
         :param net: keras network with 'set_mc_dropout_rate' function
@@ -90,7 +90,7 @@ class EliEnv(gym.Env):
                                                   X_train=self.X_train,
                                                   dropout=self.mc_dropout_rate,
                                                   T=action)
-        err = self._compute_error(self.y_train, y_mc_dropout)
+        err = self._sum_of_true_class_prob(self.y_train, y_mc_dropout)
         # TODO: do something with mc_uncertainty
         return y_mc_dropout, err, mc_uncertainty
 
@@ -101,6 +101,14 @@ class EliEnv(gym.Env):
         err = err / y_true.shape[0]
         return err
 
+    def _sum_of_true_class_prob(self, y_true, y_pred):
+        # scaled sum of true class probability in y_pred. In this way, we capture if our proba for the true class 
+        # increased or decreased.
+        # return the part of the mistake (error)
+        true_class_indices = y_true.argmax(axis=1)
+        data_size = len(true_class_indices)
+        tcp_sum = sum(y_pred[range(data_size), true_class_indices])
+        return 1-tcp_sum/data_size
     # TODO: set fixed seed
     # def seed(self, seed=None):
     #     pass
