@@ -42,6 +42,7 @@ class EliEnv(gym.Env):
         self.curr_mc_iters = 2
         self.basic_option = basic_option
         self.right_reward = right_reward
+        self.db = db # dict of n_mc_iters -> (mean, var) on X_train 
 
     def step(self, action):
         """
