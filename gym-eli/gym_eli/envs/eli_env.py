@@ -5,14 +5,13 @@ from .mc_dropout_utils import mc_dropout
 import numpy as np
 
 
-
 class EliEnv(gym.Env):
     """
     A MC-Dropout environment to learn how many forward passes is needed per example, given confidence C.
     """
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, net, confidence_rate, X_train, y_train,
+    def __init__(self, net, confidence_rate, X_train, y_train, db,
                  mc_dropout_rate=0.5,
                  max_mc_dropout_iterations=1000,
                  basic_option=True,
@@ -73,7 +72,6 @@ class EliEnv(gym.Env):
         return y_mc_dropout, reward, done, info
 
     def reset(self):
-#         print("in reset")
         return self.curr_observation
 
     def render(self, mode='human', close=False):
@@ -86,10 +84,15 @@ class EliEnv(gym.Env):
         :return: y_mc_dropout, error
         """
 #         print("in take action")
-        y_mc_dropout, mc_uncertainty = mc_dropout(net=self.net,
-                                                  X_train=self.X_train,
-                                                  dropout=self.mc_dropout_rate,
-                                                  T=action)
+#         y_mc_dropout, mc_uncertainty = mc_dropout(net=self.net,
+#                                                   X_train=self.X_train,
+#                                                   dropout=self.mc_dropout_rate,
+#                                                   T=action)
+        ans = self.db.get(action)
+        if ans:
+            y_mc_dropout, mc_uncertainty = ans
+        else:
+            print(f"ERROR! action {action} is not in the db")
         err = self._sum_of_true_class_prob(self.y_train, y_mc_dropout)
         # TODO: do something with mc_uncertainty
         return y_mc_dropout, err, mc_uncertainty
@@ -109,6 +112,7 @@ class EliEnv(gym.Env):
         data_size = len(true_class_indices)
         tcp_sum = sum(y_pred[range(data_size), true_class_indices])
         return 1-tcp_sum/data_size
+    
     # TODO: set fixed seed
     # def seed(self, seed=None):
     #     pass

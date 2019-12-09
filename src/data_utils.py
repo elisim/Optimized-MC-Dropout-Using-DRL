@@ -2,6 +2,7 @@ from keras.datasets import mnist
 import numpy as np
 from keras import utils
 
+
 def get_mnist():
     """
     prepare mnist data
@@ -16,3 +17,13 @@ def get_mnist():
     y_train, y_test = utils.to_categorical(y_train, 10), utils.to_categorical(y_test, 10)
 
     return (X_train, y_train), (X_test, y_test)
+
+
+def split_to_create_db(X_train, y_train, fold_size=0.2):
+    db_samples = int(fold_size * X_train.shape[0])
+    X_train_db = X_train[:db_samples]
+    y_train_db = y_train[:db_samples]
+    X_train = X_train[db_samples:]
+    y_train = y_train[db_samples:]
+    return X_train, X_train_db, y_train, y_train_db
+    
