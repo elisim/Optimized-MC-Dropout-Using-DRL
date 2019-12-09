@@ -1,22 +1,23 @@
+import time
 import warnings
-warnings.filterwarnings("ignore")
 import tensorflow as tf
-tf.get_logger().setLevel(tf.logging.ERROR)
 import numpy as np
-np.random.seed(42)
+import joblib
 
-
-from src.models import LeNet
-from src.data_utils import *
-from gym_eli.envs import EliEnv
-import gym
+from sklearn.model_selection import train_test_split
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
-import time
 from datetime import timedelta
-from sklearn.model_selection import train_test_split
-import joblib
+
+from src.models import LeNet
+from src.data_utils import get_mnist
+from gym_eli.envs import EliEnv
+
+warnings.filterwarnings("ignore")
+tf.get_logger().setLevel('ERROR')
+np.random.seed(42)
+
 
 
 def train(net, X_train, y_train, episodes=500, lr=0.00025, right_reward=1):
