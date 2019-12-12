@@ -1,17 +1,17 @@
+import sys
 import time
 import warnings
 import tensorflow as tf
 import numpy as np
 import joblib
 
-from sklearn.model_selection import train_test_split
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
 from datetime import timedelta
 
 from src.models import LeNet
-from src.data_utils import get_mnist
+from src.data_utils import *
 from gym_eli.envs import EliEnv
 
 warnings.filterwarnings("ignore")
@@ -22,6 +22,7 @@ np.random.seed(42)
 
 def train(net, X_train, y_train, episodes=500, lr=0.00025, right_reward=1):
     db_1000_iters = joblib.load("Assets/db_1000_iters.jblib")
+    logdir = f"with_db_and_new_reward/reward={right_reward}"
     env = DummyVecEnv([lambda: EliEnv(net=net,
                                       confidence_rate=0.5,
                                       X_train=X_train,
@@ -29,14 +30,20 @@ def train(net, X_train, y_train, episodes=500, lr=0.00025, right_reward=1):
                                       max_mc_dropout_iterations=1000,
                                       basic_option=True,
                                       right_reward=right_reward,
-                                      db=db_1000_iters
+                                      db=db_1000_iters,
+                                      log_dir=logdir
                                       )])
 
-    model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log="with_db_and_new_reward", learning_rate=lr)
+    model = PPO2(MlpPolicy, env, verbose=1, tensorboard_log=logdir, learning_rate=lr)
     model.learn(total_timesteps=episodes)
 
 
 def main():
+    if len(sys.argv) > 1:
+        right_reward = int(sys.argv[1])
+    else:
+        right_reward = 1
+        
     (X_train, y_train), (X_test, y_test) = get_mnist()
     X_train, X_train_db, y_train, y_train_db = split_to_create_db(X_train, y_train, fold_size=0.2)
     
@@ -59,7 +66,7 @@ def main():
     # y_train = y_train[:mask]
 
     tic = time.time()
-    train(lenet, X_train_db, y_train_db, episodes=500, lr=0.00025, right_reward=1)
+    train(lenet, X_train_db, y_train_db, episodes=500, lr=0.00025, right_reward=right_reward)
     toc = time.time()
     elapsed = str(timedelta(seconds=toc-tic))
     print(elapsed)

@@ -3,6 +3,17 @@ from gym import error, spaces
 from gym.utils import seeding
 from .mc_dropout_utils import mc_dropout
 import numpy as np
+import tensorflow as tf
+
+class TensorFlowLogger:
+    def __init__(self, logdir):
+        self._log_dir = logdir
+        self._file_writer = tf.summary.FileWriter(self._log_dir + "/metrics")
+
+    def log_scalar(self, tag, value, step):
+        summary = tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)])
+        self._file_writer.add_summary(summary, step)
+
 
 
 class EliEnv(gym.Env):
@@ -11,7 +22,7 @@ class EliEnv(gym.Env):
     """
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, net, confidence_rate, X_train, y_train, db,
+    def __init__(self, net, confidence_rate, X_train, y_train, db, log_dir,
                  mc_dropout_rate=0.5,
                  max_mc_dropout_iterations=1000,
                  basic_option=True,
@@ -41,7 +52,8 @@ class EliEnv(gym.Env):
         self.curr_mc_iters = 2
         self.basic_option = basic_option
         self.right_reward = right_reward
-        self.db = db # dict of n_mc_iters -> (mean, var) on X_train 
+        self.db = db # dict of n_mc_iters -> (mean, var) on X_train
+        self.tf_logger = TensorFlowLogger(log_dir)
 
     def step(self, action):
         """
@@ -64,7 +76,10 @@ class EliEnv(gym.Env):
         else:
             reward = (1-err)*self.right_reward - err*self.curr_mc_iters
         
+        self.tf_logger.log_scalar(tag="err", value=err, step=self.num_episodes)
+        self.tf_logger.log_scalar(tag="mc_iters", value=action, step=self.num_episodes)
         print(f"action = {self.curr_mc_iters}, err = {err}, reward = {reward}")
+    
         done = True  # One episode = one epoch (one pass over all data)
         self.curr_observation = y_mc_dropout
         self.num_episodes += 1
