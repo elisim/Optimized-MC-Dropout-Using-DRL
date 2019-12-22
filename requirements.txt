@@ -1,9 +1,11 @@
+scikit-learn
+joblib
 gym
 jupyterlab
 ipdb
 tqdm
 numpy
-keras
 tensorflow==1.15.0
+keras
 stable_baselines
 #nb_conda_kernels
