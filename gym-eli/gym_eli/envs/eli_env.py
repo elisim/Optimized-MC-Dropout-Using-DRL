@@ -26,7 +26,8 @@ class EliEnv(gym.Env):
                  mc_dropout_rate=0.5,
                  max_mc_dropout_iterations=1000,
                  basic_option=True,
-                 right_reward=1000):
+                 right_reward=1,
+                 new_val_map=1):
         """
         :param net: keras network with 'set_mc_dropout_rate' function
         :param confidence_rate: confidence rate (uncertainty)
@@ -54,6 +55,9 @@ class EliEnv(gym.Env):
         self.right_reward = right_reward
         self.db = db  # dict of n_mc_iters -> (mean, var) on X_train
         self.tf_logger = TensorFlowLogger(log_dir)
+        self.new_val_map = new_val_map  # see next comment
+        self.min_error = 0.98  # min error rate of the ds. used for transform (min_error, 1) to (0, new_val_map)
+        
 
     def step(self, action):
         """
@@ -71,14 +75,18 @@ class EliEnv(gym.Env):
         # err is float representing the part of the mistake.
         self.curr_mc_iters = action+2
         y_mc_dropout, err, mc_uncertainty = self._take_action(self.curr_mc_iters)
-        if self.basic_option:
-            reward = (1-err)*self.right_reward - self.curr_mc_iters
-        else:
+        
+        if self.basic_option:  # working option
+            # see https://math.stackexchange.com/questions/377169/calculating-a-value-inside-one-range-to-a-value-of-another-range/377174
+            one_minus_err_after_range = np.interp(1-err, [self.min_error, 1], [0, self.new_val_map])    
+            reward = one_minus_err_after_range*self.right_reward - self.curr_mc_iters
+        else:  # not working
             reward = (1-err)*self.right_reward - err*self.curr_mc_iters
         
         self.tf_logger.log_scalar(tag="err", value=err, step=self.num_episodes)
+        self.tf_logger.log_scalar(tag="one_minus_err_after_range", value=one_minus_err_after_range, step=self.num_episodes)
         self.tf_logger.log_scalar(tag="mc_iters", value=action, step=self.num_episodes)
-        print(f"action = {self.curr_mc_iters}, err = {err}, reward = {reward}")
+        print(f"episode = {self.num_episodes}, action = {self.curr_mc_iters}, err = {err}, reward = {reward}")
     
         done = True  # One episode = one epoch (one pass over all data)
         self.curr_observation = y_mc_dropout

@@ -20,7 +20,7 @@ np.random.seed(42)
 
 
 
-def train(net, X_train, y_train, episodes=500, lr=0.00025, right_reward=1):
+def train(net, X_train, y_train, episodes=500, lr=0.00025, right_reward=1, new_val_map=1):
     db_1000_iters = joblib.load("Assets/db_1000_iters.jblib")
     logdir = f"with_db_and_new_reward/reward={right_reward}"
     env = DummyVecEnv([lambda: EliEnv(net=net,
@@ -30,6 +30,7 @@ def train(net, X_train, y_train, episodes=500, lr=0.00025, right_reward=1):
                                       max_mc_dropout_iterations=1000,
                                       basic_option=True,
                                       right_reward=right_reward,
+                                      new_val_map=new_val_map,
                                       db=db_1000_iters,
                                       log_dir=logdir
                                       )])
@@ -41,8 +42,10 @@ def train(net, X_train, y_train, episodes=500, lr=0.00025, right_reward=1):
 def main():
     if len(sys.argv) > 1:
         right_reward = int(sys.argv[1])
+        new_val_map = int(sys.argv[2])
     else:
         right_reward = 1
+        new_val_map = 1
         
     (X_train, y_train), (X_test, y_test) = get_mnist()
     X_train, X_train_db, y_train, y_train_db = split_to_create_db(X_train, y_train, fold_size=0.2)
@@ -66,7 +69,7 @@ def main():
     # y_train = y_train[:mask]
 
     tic = time.time()
-    train(lenet, X_train_db, y_train_db, episodes=500, lr=0.00025, right_reward=right_reward)
+    train(lenet, X_train_db, y_train_db, episodes=500, lr=0.00025, right_reward=right_reward, new_val_map=new_val_map)
     toc = time.time()
     elapsed = str(timedelta(seconds=toc-tic))
     print(elapsed)
