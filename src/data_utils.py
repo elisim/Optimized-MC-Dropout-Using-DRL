@@ -1,6 +1,8 @@
-from keras.datasets import mnist
 import numpy as np
+from keras.datasets import mnist
 from keras import utils
+from sklearn.metrics import accuracy_score
+
 
 
 def get_mnist():
@@ -27,3 +29,7 @@ def split_to_create_db(X_train, y_train, fold_size=0.2):
     y_train = y_train[db_samples:]
     return X_train, X_train_db, y_train, y_train_db
     
+
+def probs_accuracy(y_probs, y_pred_categorical):
+    y_probs_categorical = utils.to_categorical(y_probs.argmax(axis=1))
+    return accuracy_score(y_probs_categorical, y_pred_categorical)

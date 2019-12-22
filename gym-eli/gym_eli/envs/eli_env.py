@@ -5,6 +5,7 @@ from .mc_dropout_utils import mc_dropout
 import numpy as np
 import tensorflow as tf
 
+
 class TensorFlowLogger:
     def __init__(self, logdir):
         self._log_dir = logdir
@@ -13,7 +14,6 @@ class TensorFlowLogger:
     def log_scalar(self, tag, value, step):
         summary = tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)])
         self._file_writer.add_summary(summary, step)
-
 
 
 class EliEnv(gym.Env):
@@ -52,7 +52,7 @@ class EliEnv(gym.Env):
         self.curr_mc_iters = 2
         self.basic_option = basic_option
         self.right_reward = right_reward
-        self.db = db # dict of n_mc_iters -> (mean, var) on X_train
+        self.db = db  # dict of n_mc_iters -> (mean, var) on X_train
         self.tf_logger = TensorFlowLogger(log_dir)
 
     def step(self, action):
