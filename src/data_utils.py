@@ -21,6 +21,13 @@ def get_mnist():
     return (X_train, y_train), (X_test, y_test)
 
 
+def get_concrete(path):
+    data = np.loadtxt(path)
+    X_train = data[:,:8]
+    y_train = data[:,8]
+    return X_train, y_train
+
+
 def split_to_create_db(X_train, y_train, fold_size=0.2):
     db_samples = int(fold_size * X_train.shape[0])
     X_train_db = X_train[:db_samples]
