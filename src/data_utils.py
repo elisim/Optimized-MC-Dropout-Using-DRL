@@ -4,7 +4,6 @@ from keras import utils
 from sklearn.metrics import accuracy_score
 
 
-
 def get_mnist():
     """
     prepare mnist data
