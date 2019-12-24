@@ -77,14 +77,15 @@ class EliEnv(gym.Env):
         y_mc_dropout, err, mc_uncertainty = self._take_action(self.curr_mc_iters)
         
         if self.basic_option:  # working option
-            # see https://math.stackexchange.com/questions/377169/calculating-a-value-inside-one-range-to-a-value-of-another-range/377174
-            one_minus_err_after_range = np.interp(1-err, [self.min_error, 1], [0, self.new_val_map])    
-            reward = one_minus_err_after_range*self.right_reward - self.curr_mc_iters
+            # # see https://math.stackexchange.com/questions/377169/calculating-a-value-inside-one-range-to-a-value-of-another-range/377174
+            # one_minus_err_after_range = np.interp(1-err, [self.min_error, 1], [0, self.new_val_map])
+            # reward = one_minus_err_after_range*self.right_reward - self.curr_mc_iters
+            reward = err*(-self.right_reward) - self.curr_mc_iters
         else:  # not working
             reward = (1-err)*self.right_reward - err*self.curr_mc_iters
         
         self.tf_logger.log_scalar(tag="err", value=err, step=self.num_episodes)
-        self.tf_logger.log_scalar(tag="one_minus_err_after_range", value=one_minus_err_after_range, step=self.num_episodes)
+        # self.tf_logger.log_scalar(tag="one_minus_err_after_range", value=one_minus_err_after_range, step=self.num_episodes)
         self.tf_logger.log_scalar(tag="mc_iters", value=action, step=self.num_episodes)
         print(f"episode = {self.num_episodes}, action = {self.curr_mc_iters}, err = {err}, reward = {reward}")
     
@@ -113,11 +114,13 @@ class EliEnv(gym.Env):
 #                                                   T=action)
         ans = self.db.get(action)
         if ans:
-            y_mc_dropout, mc_uncertainty = ans
+            # y_mc_dropout, mc_uncertainty = ans # mnist
+            standrad_rmse, err, test_ll, y_mc_dropout = ans # conc
         else:
             print(f"ERROR! action {action} is not in the db")
-        err = self._sum_of_true_class_prob(self.y_train, y_mc_dropout)
+        # err = self._sum_of_true_class_prob(self.y_train, y_mc_dropout) # mnist
         # TODO: do something with mc_uncertainty
+        mc_uncertainty = 0
         return y_mc_dropout, err, mc_uncertainty
 
     def _compute_error(self, y_true, y_pred):
