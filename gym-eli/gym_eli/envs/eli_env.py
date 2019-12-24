@@ -121,7 +121,7 @@ class EliEnv(gym.Env):
         # err = self._sum_of_true_class_prob(self.y_train, y_mc_dropout) # mnist
         # TODO: do something with mc_uncertainty
         mc_uncertainty = 0
-        return y_mc_dropout, err, mc_uncertainty
+        return y_mc_dropout.flatten(), err, mc_uncertainty
 
     def _compute_error(self, y_true, y_pred):
         # count the number of wrong classifications (label is 1 and i said 2 after mc)

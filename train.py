@@ -29,7 +29,7 @@ parser.add_argument('--episodes', '-e', default=500, type=int, help='episodes')
 
 
 def train(net, X_train, y_train, db, episodes=500, lr=0.00025, right_reward=1, new_val_map=1):
-    logdir = f"{net.__class__.__name__}/reward={right_reward}"
+    logdir = f"results/{net.__class__.__name__}/reward={right_reward}"
     env = DummyVecEnv([lambda: EliEnv(net=net,
                                       confidence_rate=0.5,
                                       X_train=X_train,
