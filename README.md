@@ -1,2 +1,2 @@
-# Teza
-Teza
+# Thesis
+Thesis
