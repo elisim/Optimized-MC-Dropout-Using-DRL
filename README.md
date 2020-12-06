@@ -1,3 +1,5 @@
+**Status:** Archive (code is provided as-is, no updates expected)
+
 # Optimized-MC-Dropout-Using-DRL
 
 MC-dropout estimates uncertainty at test time using the variance statistics extracted from several dropout-enabled forward passes. Unfortunately, the prediction cost of an effective MC-dropout can reach hundreds of feed-forward iterations for each prediction.
