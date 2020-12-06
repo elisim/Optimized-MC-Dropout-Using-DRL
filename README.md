@@ -1,5 +1,4 @@
 # Optimized-MC-Dropout-Using-DRL
-Private
 
 MC-dropout estimates uncertainty at test time using the variance statistics extracted from several dropout-enabled forward passes. Unfortunately, the prediction cost of an effective MC-dropout can reach hundreds of feed-forward iterations for each prediction.
 In this repository, I model MC-dropout in a Deep Reinforcement Learning (DRL) framework, to find the optimial passes needed for producing predefined confidence level. 
