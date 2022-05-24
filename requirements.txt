@@ -6,7 +6,7 @@ jupyterlab
 ipdb
 tqdm
 numpy
-tensorflow==1.15.0
+tensorflow==2.6.4
 keras
 stable_baselines
 #nb_conda_kernels
